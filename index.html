@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FertiScoreAI</title>
+<meta name="description" content="A private, anonymous fertility risk screening for men. Screening only, not a diagnosis.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Manrope:wght@400;600&display=swap">
+<style>
+:root{--bg:#EDF3F4;--surface:#FFFFFF;--ink:#10292E;--muted:#4C666B;--teal:#1F6F78;--teal-ink:#FFFFFF;--amber:#B9770E;--coral:#B8432C;--green:#237A4B;--line:#C9D8DA;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0C1F23;--surface:#143137;--ink:#E6F1F2;--muted:#9DB6BA;--teal:#5BB8C2;--teal-ink:#0C1F23;--amber:#E7B04A;--coral:#F08A74;--green:#6CCB98;--line:#2A4A50}}
+:root[data-theme="dark"]{--bg:#0C1F23;--surface:#143137;--ink:#E6F1F2;--muted:#9DB6BA;--teal:#5BB8C2;--teal-ink:#0C1F23;--amber:#E7B04A;--coral:#F08A74;--green:#6CCB98;--line:#2A4A50}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.6 Manrope,system-ui,sans-serif}
+main{max-width:660px;margin:0 auto;padding:28px 18px 90px}
+h1,h2{font-family:"Bricolage Grotesque",Georgia,sans-serif;line-height:1.15;margin:0 0 .5em}
+h1{font-size:2.3rem}h2{font-size:1.3rem;margin-top:1.5em}
+p{margin:.4em 0 1em;max-width:62ch}
+.lead{color:var(--muted);font-size:1.08rem}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:.93rem;color:var(--muted)}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input[type=number],select,#ci{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit}
+.chk{display:flex;gap:10px;align-items:flex-start;font-weight:400;margin:9px 0}
+.chk input{margin-top:5px;width:18px;height:18px;flex:none;accent-color:var(--teal)}
+fieldset{border:1px solid var(--line);border-radius:10px;margin:16px 0;padding:6px 14px 10px;background:var(--surface)}
+legend{font-weight:700;padding:0 6px}
+.hint{font-size:.9rem;color:var(--muted);margin:4px 0 6px}
+button,.btn{display:inline-block;font:600 1rem Manrope,sans-serif;padding:12px 20px;border-radius:8px;border:0;background:var(--teal);color:var(--teal-ink);cursor:pointer;margin-top:10px;text-decoration:none}
+button.alt{background:transparent;color:var(--teal);border:1px solid var(--teal)}
+button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+#result{display:none}
+.ring{width:190px;height:190px;display:block;margin:10px 0}
+.pill{display:inline-block;font-weight:700;padding:4px 12px;border-radius:20px;border:2px solid currentColor}
+.card{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--teal);border-radius:10px;padding:14px 16px;margin:16px 0}
+.card.warn{border-left-color:var(--coral)}.card.ok{border-left-color:var(--green)}
+ul{padding-left:1.2em;margin:.3em 0}
+#cb{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:5;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+#cp{position:fixed;right:16px;bottom:calc(70px + env(safe-area-inset-bottom,0px));width:min(370px,calc(100% - 32px));height:min(480px,62vh);display:none;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:12px;z-index:5;overflow:hidden}
+#cb{display:inline-flex;align-items:center;gap:8px}
+#ch{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--teal);color:var(--teal-ink);font-weight:700}
+#cm{flex:1;overflow-y:auto;padding:10px}
+.m{margin:6px 0;padding:8px 11px;border-radius:10px;max-width:88%;font-size:.93rem;line-height:1.45}
+.m.b{background:var(--bg)}.m.u{background:var(--teal);color:var(--teal-ink);margin-left:auto}
+#cc{padding:4px 10px;display:flex;flex-wrap:wrap;gap:6px}
+#cc button{margin:0;padding:5px 10px;font-size:.8rem;border-radius:14px}
+#cf{display:flex;gap:6px;padding:8px;border-top:1px solid var(--line)}
+#cf button{margin:0;padding:8px 14px}
+</style>
+</head>
+<body>
+<main>
+<h1>FertiScoreAI</h1>
+<p class="lead">Check your reproductive health signals early, privately, with no name or login.</p>
+<div class="note">This is a screening score, not a diagnosis. Only a doctor and a semen analysis can confirm fertility. Your answers stay on your device and are not saved.</div>
+<form id="f"></form>
+<section id="result" aria-live="polite"><h2>Your result</h2><div id="out"></div><button class="alt" id="again" type="button">Start again</button></section>
+</main>
+
+<button id="cb" type="button" aria-expanded="false"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="10" cy="10" rx="7" ry="4.4" transform="rotate(45 10 10)" fill="currentColor"/><path d="M14.2 14.2C17.5 16.5 16 20 19 22S23 22.5 25 25S28 28.5 29.5 29.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Ask FertiBot</button>
+<div id="cp" role="dialog" aria-label="FertiBot chat">
+<div id="ch"><svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="10" cy="10" rx="7" ry="4.4" transform="rotate(45 10 10)" fill="currentColor"/><path d="M14.2 14.2C17.5 16.5 16 20 19 22S23 22.5 25 25S28 28.5 29.5 29.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>FertiBot</div>
+<div id="cm" aria-live="polite"></div><div id="cc"></div>
+<div id="cf"><input id="ci" type="text" placeholder="Type your question" aria-label="Your question"><button id="cs" type="button">Send</button></div>
+</div>
+
+<script>
+var $=function(i){return document.getElementById(i)};
+/* [id, question, points, short label, flag] flag: r=red flag, b=boundary, c=chest */
+var G=[
+['Fertility history',[
+['f1','Have you been trying to conceive for more than 12 months without success?',3,'Trying to conceive for over 12 months'],
+['f2','Have you ever fathered a child before?',-2,'Fathered a child before'],
+['f3','Have you or your partner experienced recurrent miscarriages?',3,'Recurrent miscarriages']]],
+['Sexual health',[
+['s1','Do you have difficulty maintaining an erection?',2,'Erection difficulty'],
+['s2','Do you have reduced sexual desire (low libido)?',2,'Low sexual desire'],
+['s3','Have you noticed a reduced volume of semen?',2,'Reduced semen volume']]],
+['Physical symptoms',[
+['p1','Do you have pain, swelling or lumps in the testicles?',3,'Testicular pain, swelling or lumps','r'],
+['p2','Is one testicle clearly larger than the other?',3,'Uneven testicle size','r'],
+['p3','Have you ever been diagnosed with varicocele (enlarged veins in the scrotum)?',3,'Varicocele'],
+['p4','Have you had a testicular injury or surgery?',3,'Past testicular injury or surgery']]],
+['Hormonal indicators',[
+['h1','Do you have decreased facial or body hair growth?',2,'Reduced facial or body hair'],
+['h2','Have you noticed breast enlargement (gynecomastia)?',2,'Breast enlargement'],
+['h3','Do you often feel unusually tired or low on energy?',2,'Constant tiredness']]],
+['Medical history',[
+['m1','Have you had mumps after puberty?',3,'Mumps after puberty'],
+['m2','Have you had genital infections or sexually transmitted infections?',3,'Past genital or sexual infection'],
+['m3','Do you have diabetes, a thyroid disorder or a hormonal condition?',2,'Diabetes, thyroid or hormonal condition']]],
+['Lifestyle',[
+['l1','Do you smoke cigarettes or use tobacco?',1,'Smoking or tobacco'],
+['l2','Do you smoke more than 10 cigarettes a day?',1,'Heavy smoking'],
+['l3','Do you drink alcohol often?',1,'Frequent alcohol'],
+['l4','Do you use anabolic steroids or bodybuilding supplements?',2,'Steroids or bodybuilding supplements'],
+['l5','Are you often exposed to high heat (saunas, hot tubs, laptop on lap for long periods)?',1,'Regular heat exposure'],
+['l6','Are you exposed to chemicals, pesticides or radiation at work?',1,'Chemical or radiation exposure'],
+['l7','Is your lifestyle mostly sedentary?',1,'Sedentary lifestyle'],
+['l8','Do you have high levels of chronic stress?',1,'Chronic stress']]],
+['Organs, genetics and cancer treatment',[
+['b1','Were you born without one or both testes, or without other reproductive organs?',0,'','b'],
+['b2','Have one or both testes, or other reproductive organs, been surgically removed?',0,'','b'],
+['b3','Have you had chemotherapy or radiation treatment?',0,'','b'],
+['b4','Have your testes or reproductive organs suffered serious damage (injury, torsion, severe infection)?',0,'','b'],
+['b5','Do you have a known genetic condition affecting fertility (for example Klinefelter syndrome)?',0,'','b']]]
+];
+var CS=[['Diabetes symptoms',['Very thirsty or passing urine often','Cuts or wounds heal slowly','Blurred vision','Numbness or tingling in feet']],
+['Thyroid symptoms',['Weight changed without trying','Feeling very cold or very hot','Thinning hair or dry skin','Racing or very slow heartbeat']],
+['Blood pressure symptoms',['Frequent headaches','Dizziness','Chest tightness or shortness of breath','Readings often high even with medicine']]];
+var Q={};
+function sel(id,lab,o){return '<label for="'+id+'">'+lab+'</label><select id="'+id+'">'+o.map(function(x,i){return '<option value="'+i+'">'+x+'</option>'}).join('')+'</select>'}
+function build(){
+  var h='<fieldset><legend>About you</legend><label for="age">Age (years)</label><input id="age" type="number" min="18" max="80" value="30"><label for="ht">Height (cm)</label><input id="ht" type="number" min="120" max="220" value="170"><label for="wt">Weight (kg)</label><input id="wt" type="number" min="35" max="250" value="75"><label for="sl">Sleep (hours per night)</label><input id="sl" type="number" min="2" max="14" value="7"></fieldset>';
+  function grp(g){
+    var s='<fieldset><legend>'+g[0]+'</legend><p class="hint">'+(g[0].indexOf('Organs')==0?'If you tick any of these, a fertility score cannot be shown and a specialist is recommended.':'Tick the boxes that apply. Leave the rest empty.')+'</p>';
+    g[1].forEach(function(q){Q[q[0]]=q;s+='<label class="chk"><input type="checkbox" id="'+q[0]+'"> '+q[1]+'</label>'});
+    return s+'</fieldset>';
+  }
+  G.slice(0,-1).forEach(function(g){h+=grp(g)});
+  CS.forEach(function(c,k){
+    h+='<fieldset class="cs"><legend>'+c[0]+'</legend><p class="hint">Tick any that apply, even if you have not been diagnosed.</p>';
+    c[1].forEach(function(x,j){h+='<label class="chk"><input type="checkbox" class="csb'+((k==2&&j==2)?' chest':'')+'"> '+x+'</label>'});
+    h+='</fieldset>';
+  });
+  h+='<fieldset><legend>Mood and happiness</legend>'+sel('an','Anger: how often do you feel angry or irritable?',['Rarely','Sometimes','Often, or I have outbursts'])+sel('ax','Anxiety and overthinking: how often?',['Rarely','Sometimes','Often, and I cannot switch off'])+sel('hp','How happy do you feel most days?',['Mostly happy','Up and down','Mostly unhappy'])+'<label class="chk"><input type="checkbox" id="pn"> I have panic attacks</label></fieldset>'+grp(G[G.length-1])+'<button type="submit">Get my score</button>';
+  $('f').innerHTML=h;
+}
+var TIPS=[[/smok|tobacco/i,'Cut down smoking slowly, for example one cigarette fewer each week.'],[/alcohol/i,'Drink less and keep several alcohol-free days each week.'],[/steroid/i,'Talk to a doctor before using steroids or bodybuilding supplements. They can lower sperm production.'],[/heat/i,'Avoid long hot baths and saunas, and keep laptops off your lap.'],[/chemical/i,'Use protective gear and take breaks from chemicals or pesticides.'],[/sedentary/i,'Start with a 10-minute walk every day and build up slowly.'],[/stress|anger|anxiety|unhappy|mood|panic/i,'Try 10 minutes of slow breathing or walking daily, and talk to someone you trust.'],[/Sleep/,'Aim for 7 to 8 hours of sleep with a regular bedtime.'],[/Weight below/,'Eat regular, nourishing meals and ask a doctor about healthy weight gain.'],[/Weight/,'Aim for steady weight loss with a daily walk and smaller portions.']];
+function calc(){
+  var R=0,rs=[],bd=false,red=false,ch=false,on=function(i){return $(i).checked};
+  function add(p,l){R+=p;rs.push([l,p])}
+  Object.keys(Q).forEach(function(i){var q=Q[i];if(!on(i))return;if(q[4]=='b'){bd=true;return}if(q[4]=='r')red=true;add(q[2],q[3])});
+  var age=+$('age').value,bmi=+$('wt').value/Math.pow(+$('ht').value/100,2),sl=+$('sl').value;
+  if(age>=40)add(2,'Age 40 or above');else if(age>=35)add(1,'Age 35 or above');
+  if(bmi>=30)add(2,'Weight in the obesity range');else if(bmi>=25)add(1,'Weight above the healthy range');else if(bmi<18.5)add(1,'Weight below the healthy range');
+  if(sl<6)add(1,'Sleeping under 6 hours');
+  if(+$('an').value==2)add(1,'Frequent anger or irritability');
+  if(+$('ax').value==2)add(1,'Frequent anxiety or overthinking');
+  if(+$('hp').value==2)add(1,'Feeling unhappy most days');
+  if(on('pn'))add(1,'Panic attacks');
+  var cg=[0,0,0],i=0;
+  Array.prototype.forEach.call(document.querySelectorAll('.csb'),function(b,j){if(b.checked){cg[Math.floor(j/4)]++;if(b.classList.contains('chest'))ch=true}});
+  var cn=cg[0]+cg[1]+cg[2];if(cn)add(Math.min(3,cn),'Symptoms linked to diabetes, thyroid or blood pressure');
+  R=Math.max(0,R);
+  return {R:R,score:Math.max(0,Math.min(95,Math.round(100-R*2.5))),rs:rs,bd:bd,red:red,ch:ch,cg:cg,on:on}
+}
+function ring(s,col,lab){var C=339.3;return '<svg class="ring" viewBox="0 0 120 120" role="img" aria-label="'+lab+' '+s+' percent"><circle cx="60" cy="60" r="54" fill="none" stroke="var(--line)" stroke-width="10"/><circle cx="60" cy="60" r="54" fill="none" stroke="'+col+'" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+(C*(1-s/100))+'" transform="rotate(-90 60 60)"/><text x="60" y="64" text-anchor="middle" font-size="26" font-weight="700" fill="var(--ink)" font-family="Bricolage Grotesque,sans-serif">'+s+'%</text><text x="60" y="82" text-anchor="middle" font-size="9" fill="var(--muted)">'+lab+'</text></svg>'}
+function li(a){return '<ul>'+a.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>'}
+function fg(){return '<div class="card" style="display:flex;gap:14px;align-items:flex-start"><div style="flex:none"><svg width="48" height="48" viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="10" fill="var(--teal)"/><path d="M22 9l10 4v8c0 6-4 11-10 14-6-3-10-8-10-14v-8z" fill="none" stroke="var(--teal-ink)" stroke-width="2.4" stroke-linejoin="round"/><path d="M22 27s-5-3.2-5-6.6A2.9 2.9 0 0 1 22 18.6a2.9 2.9 0 0 1 5 1.8C27 23.8 22 27 22 27z" fill="var(--teal-ink)"/></svg></div><div><strong>Improve your score with FertiGuard AI</strong><p>Install FertiGuard AI to turn lifestyle changes into small weekly goals, track progress daily and earn badges over a year.</p><a class="btn" href="fertiguard.html">Install FertiGuard AI</a></div></div>'}
+$('f').addEventListener('submit',function(e){
+  e.preventDefault();
+  var r=calc(),h='',on=r.on,col=r.score>=80?'var(--green)':(r.score>=60?'var(--amber)':'var(--coral)');
+  if(r.bd){
+    h+='<div class="card warn"><strong>Fertility score not available</strong><p>Your answers include an organ, genetic or cancer-treatment situation. Lifestyle habits cannot reliably estimate fertility in these cases, and a high-looking score would be misleading. Please speak with a fertility specialist or urologist. Many options exist, depending on the situation.</p></div>';
+    h+='<h2>Your lifestyle wellness score</h2>'+ring(r.score,'var(--teal)','wellness score')+'<p>This is a general health score. It is not a fertility estimate for your situation.</p>';
+  }else{
+    var band=r.R<=8?'Low risk':(r.R<=20?'Moderate risk':'High risk');
+    h+=ring(r.score,col,'fertility score')+'<span class="pill" style="color:'+col+'">'+band+'</span>';
+    h+='<p>'+(r.R<=8?'No major risk signals were found. Keep up healthy habits.':(r.R<=20?'Some factors linked to reduced sperm quality were found. A semen analysis may be recommended.':'Several risk factors were found. A fertility specialist and a laboratory semen analysis are strongly recommended.'))+'</p>';
+  }
+  var top=r.rs.filter(function(x){return x[1]>0}).sort(function(a,b){return b[1]-a[1]}).slice(0,6);
+  if(top.length)h+='<h2>What affected your score most</h2>'+li(top.map(function(x){return x[0]+' (+'+x[1]+' risk points)'}));
+  var tp=[];r.rs.forEach(function(x){for(var k=0;k<TIPS.length;k++){if(TIPS[k][0].test(x[0])){if(tp.indexOf(TIPS[k][1])<0)tp.push(TIPS[k][1]);break}}});
+  if(tp.length)h+='<h2>How to improve your score</h2>'+li(tp);
+  var dr=[];
+  if(!r.bd&&r.R>8)dr.push('A semen analysis. It is the only way to confirm sperm count and motility.');
+  if(on('f1'))dr.push('See a doctor together with your partner, because both partners should be assessed.');
+  if(on('p1')||on('p2')||on('p3')||on('p4'))dr.push('A urologist visit and a scrotal examination.');
+  if(on('s1')||on('s2')||on('s3')||on('h1')||on('h2')||on('h3'))dr.push('A talk with a doctor. A testosterone and hormone blood test may be suggested.');
+  if(on('m2'))dr.push('Infection screening and treatment if needed.');
+  if(r.cg[0]||on('m3'))dr.push('A blood sugar test (fasting glucose or HbA1c).');
+  if(r.cg[1])dr.push('A thyroid blood test (TSH).');
+  if(r.cg[2])dr.push('A blood pressure check, and a doctor visit if readings are often high.');
+  if(dr.length)h+='<div class="card"><strong>Medical check-ups to consider</strong>'+li(dr)+'</div>';
+  if(r.red)h+='<div class="card warn"><strong>See a doctor soon</strong><p>Pain, swelling, lumps or uneven testicle size should be checked promptly. Do not wait for a score.</p></div>';
+  if(r.ch)h+='<div class="card warn"><strong>Get medical help promptly</strong><p>Chest tightness or shortness of breath needs urgent medical attention.</p></div>';
+  if(+$('an').value==2||+$('ax').value==2||on('pn')||+$('hp').value==2)h+='<div class="card"><strong>About mood changes</strong><p>Anger, anxiety, panic and low mood are common and can be linked to stress, poor sleep, alcohol, thyroid problems or low testosterone. They are treatable. Mention them to a doctor and consider talking to a counsellor.</p></div>';
+  if(r.bd||r.score<80)h+=fg();
+  h+='<p class="note">No name or ID is needed to see your score. Screening only: this does not diagnose infertility or predict conception.</p>';
+  $('out').innerHTML=h;$('result').style.display='block';$('result').scrollIntoView({behavior:'smooth'});
+});
+$('again').addEventListener('click',function(){$('result').style.display='none';$('f').reset();window.scrollTo(0,0)});
+/* FertiBot: rule-based, runs in the browser, sends nothing anywhere */
+var KB=[
+[/pain|swell|lump|chest|breath|suicid|kill myself|hurt myself|emergency|bleed/i,'Please do not wait for a chatbot. Testicular pain, swelling, lumps, chest tightness or thoughts of harming yourself need prompt medical help. Contact a doctor or your local emergency number now.'],
+[/diagnos|infertil|sure|confirm|accurate|guarantee/i,'FertiScoreAI is a screening tool, not a diagnosis. It estimates risk signals from your answers. Only a doctor and a semen analysis can confirm sperm count and motility.'],
+[/mean|score|percent|result/i,'Your percentage is a fertility wellness estimate. 80% or more means few risk signals. Below 80% means some habits or symptoms may be lowering it. The result page lists what affected it most.'],
+[/privacy|data|private|anonym|name|store|save/i,'No name, login or ID is needed. Your answers stay in your browser and are not saved or sent anywhere. FertiBot also runs in your browser.'],
+[/improve|increase|raise|better|tip|habit/i,'Small steps work best: cut smoking slowly, drink less alcohol, walk 10 minutes daily, sleep 7 to 8 hours, manage stress and avoid heat. FertiGuard AI turns these into weekly goals.'],
+[/fertiguard|install|app|badge/i,'FertiGuard AI is our companion app. It gives small weekly goals, daily tracking and badges over a year. You will see an install button on your result if your score is below 80%.'],
+[/semen|sperm|motility|count|test|checkup|check-up/i,'A semen analysis is the standard test for sperm count and motility. A doctor can arrange it, often with blood tests for hormones, sugar or thyroid if your symptoms suggest them.'],
+[/doctor|when|urolog|specialist/i,'See a doctor if you have pain, swelling or lumps, if you have tried for a child for 12 months, or if your result is moderate or high risk. A urologist or fertility specialist can help.'],
+[/stress|anger|anxi|panic|mood|happy/i,'Stress, anger, anxiety and low mood can affect sleep, hormones and sexual health. They are common and treatable. Talking to a doctor or counsellor can help.'],
+[/cancer|chemo|radiation|surgery|removed|genetic|born without/i,'In these situations lifestyle cannot reliably estimate fertility, so we show no fertility score and recommend a fertility specialist. Many options exist depending on the case.'],
+[/partner|wife|blame|women|woman/i,'Male factors contribute to about half of fertility difficulties. Checking early and privately helps both partners get the right care sooner.']
+];
+function say(t,c){var d=document.createElement('div');d.className='m '+c;d.textContent=t;$('cm').appendChild(d);$('cm').scrollTop=$('cm').scrollHeight}
+function ask(t){t=(t||'').trim();if(!t)return;say(t,'u');var a='I am not sure about that. I can explain your score, privacy, how to improve it, check-ups and when to see a doctor. For personal medical questions, please talk to a doctor.';for(var i=0;i<KB.length;i++){if(KB[i][0].test(t)){a=KB[i][1];break}}say(a,'b')}
+['What does my score mean?','Is this a diagnosis?','Is my data private?','How can I improve my score?','When should I see a doctor?'].forEach(function(t){var b=document.createElement('button');b.type='button';b.className='alt';b.textContent=t;b.onclick=function(){ask(t)};$('cc').appendChild(b)});
+say('Hi, I am FertiBot. Ask me about your score, privacy or next steps. I am an automated helper, not a doctor.','b');
+$('cb').onclick=function(){var p=$('cp'),o=p.style.display!=='flex';p.style.display=o?'flex':'none';this.setAttribute('aria-expanded',o)};
+$('cs').onclick=function(){ask($('ci').value);$('ci').value=''};
+$('ci').addEventListener('keydown',function(e){if(e.key==='Enter'){ask(this.value);this.value=''}});
+build();
+</script>
+</body>
+</html>

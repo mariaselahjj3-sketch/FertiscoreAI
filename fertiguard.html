@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FertiGuard AI</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Manrope:wght@400;600&display=swap">
+<style>
+:root{--bg:#EDF3F4;--surface:#FFFFFF;--ink:#10292E;--muted:#4C666B;--teal:#1F6F78;--teal-ink:#FFFFFF;--amber:#B9770E;--coral:#B8432C;--green:#237A4B;--line:#C9D8DA;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0C1F23;--surface:#143137;--ink:#E6F1F2;--muted:#9DB6BA;--teal:#5BB8C2;--teal-ink:#0C1F23;--amber:#E7B04A;--coral:#F08A74;--green:#6CCB98;--line:#2A4A50}}
+:root[data-theme="dark"]{--bg:#0C1F23;--surface:#143137;--ink:#E6F1F2;--muted:#9DB6BA;--teal:#5BB8C2;--teal-ink:#0C1F23;--amber:#E7B04A;--coral:#F08A74;--green:#6CCB98;--line:#2A4A50}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.6 Manrope,system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:28px 18px 56px}
+h1,h2{font-family:"Bricolage Grotesque",Georgia,sans-serif;line-height:1.15;margin:0 0 .5em}
+h1{font-size:2.2rem}h2{font-size:1.3rem;margin-top:1.5em}
+p{margin:.4em 0 1em;max-width:62ch}
+.lead{color:var(--muted)}
+label{display:block;font-weight:600;margin:14px 0 4px}
+input[type=number],input[type=text]{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit}
+.chk{display:flex;gap:10px;align-items:flex-start;font-weight:400;margin:8px 0}
+.chk input{margin-top:5px;width:18px;height:18px;accent-color:var(--teal)}
+button{font:600 1rem Manrope,sans-serif;padding:12px 20px;border-radius:8px;border:0;background:var(--teal);color:var(--teal-ink);cursor:pointer;margin:10px 8px 0 0}
+button.alt{background:transparent;color:var(--teal);border:1px solid var(--teal)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--teal);border-radius:10px;padding:14px 16px;margin:16px 0}
+.card.warn{border-left-color:var(--coral)}.card.ok{border-left-color:var(--green)}
+.big{font:700 3rem "Bricolage Grotesque",sans-serif;line-height:1}
+.id{font:700 1.2rem "Bricolage Grotesque",sans-serif;letter-spacing:.06em}
+.bar{height:14px;background:var(--line);border-radius:8px;overflow:hidden;margin:10px 0}
+.bar i{display:block;height:100%;background:var(--teal)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.b{border:1px solid var(--line);border-radius:10px;padding:10px 4px;text-align:center;font-size:.85rem;background:var(--surface)}
+.b.on{border-color:var(--green);border-width:2px}.b.off{opacity:.55}
+.b span{display:block;font-size:1.7rem}
+.err{color:var(--coral);font-weight:600}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+function $(i){return document.getElementById(i)}
+var S=null;
+var B=[['Bronze','🥉',3,2],['Silver','🥈',6,4],['Gold','🥇',9,6],['Platinum','💠',12,8],['Sapphire','🔷',24,12],['Ruby','♦️',36,16],['Emerald','💚',44,19],['Diamond','💎',48,21],['Koh-i-Noor','👑',52,0]];
+function wk(){return Math.floor(S.days/7)}
+function paused(){return S.med&&!S.report&&wk()>=10}
+function earned(i){var g=S.score-S.start;if(S.bound)return false;if(i==8)return wk()>=52&&S.score>=80;return wk()>=B[i][2]&&g>=B[i][3]}
+function join(){
+  var a=$('l1').value.trim().toUpperCase(),b=$('l2').value.trim().toUpperCase(),s=parseFloat($('sc').value);
+  if(!/^[A-Z]$/.test(a)||!/^[A-Z]$/.test(b)){$('err').textContent='Please type one letter in each of the two letter boxes.';return}
+  if(!(s>=0&&s<=100)){$('err').textContent='Please enter your FertiScoreAI percentage (0 to 100).';return}
+  S={id:a+b+(Math.floor(Math.random()*9000)+1000),start:s,score:s,days:0,cig:parseInt($('cg').value)||0,med:$('md').checked,bound:$('bd').checked,report:false};
+  render();window.scrollTo(0,0)
+}
+function logDay(n){S.days++;if(!S.bound&&!paused()){S.score=Math.min(100,Math.round((S.score+0.15*n)*100)/100)}}
+function save(){logDay(document.querySelectorAll('.hb:checked').length);render()}
+function ff(w){for(var i=0;i<7*w;i++)logDay(4);render()}
+function upload(){S.report=true;render()}
+function reset(){S=null;render();window.scrollTo(0,0)}
+function habits(){
+  var h=['Walked for 10 minutes or more','Slept 7 to 8 hours','Drank about 2 litres of water','Avoided alcohol today'];
+  if(S.cig>0)h.push('Stayed within this week’s cigarette limit');
+  return h
+}
+function joinView(){
+  return `<h1>FertiGuard AI</h1><p class="lead">Small daily steps that raise your fertility wellness score over one year.</p>
+  <div class="card">No name is stored. Your private ID is made from two letters of your name plus four random numbers.</div>
+  <label for="l1">First letter of your first name</label><input id="l1" type="text" maxlength="1">
+  <label for="l2">Second letter of your second name</label><input id="l2" type="text" maxlength="1">
+  <label for="sc">Your FertiScoreAI percentage</label><input id="sc" type="number" min="0" max="100" value="58">
+  <label for="cg">Cigarettes per day now (0 if none)</label><input id="cg" type="number" min="0" max="60" value="10">
+  <label class="chk"><input type="checkbox" id="md"> I have a medical condition (diabetes, thyroid or blood pressure)</label>
+  <label class="chk"><input type="checkbox" id="bd"> I have a known genetic condition, had surgery to remove reproductive organs, or had high-dose chemotherapy or radiation</label>
+  <p id="err" class="err" role="alert"></p>
+  <button type="button" onclick="join()">Start my journey</button>`
+}
+function dash(){
+  var w=wk(),g=S.score-S.start,span=80-S.start,pct=span>0?Math.max(0,Math.min(100,g/span*100)):100,h='';
+  h+=`<h1>FertiGuard AI</h1><p class="lead">Your private ID: <span class="id">${S.id}</span></p>`;
+  if(S.bound){
+    h+=`<div class="card warn"><strong>Specialist pathway</strong><p>This app cannot estimate or improve fertility in your situation. You can still track healthy habits. Please see a fertility specialist.</p></div>`;
+  }else{
+    h+=`<div class="card"><div class="big">${S.score.toFixed(1)}%</div><p>Started at ${S.start}% · Target 80%</p><div class="bar" role="progressbar" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div><p>Week ${w} of 52 · Day ${S.days}</p></div>`;
+  }
+  if(paused())h+=`<div class="card warn"><strong>Clinical review required</strong><p>Your score is paused until you share updated medical information. Basic tracking continues.</p><button type="button" onclick="upload()">Upload report (demo)</button></div>`;
+  else if(S.med&&!S.report&&w>=8)h+=`<div class="card warn"><strong>Medical report still pending</strong><p>Second reminder: please upload your latest lab results (HbA1c, testosterone, thyroid profile).</p><button type="button" onclick="upload()">Upload report (demo)</button></div>`;
+  else if(S.med&&!S.report&&w>=6)h+=`<div class="card"><strong>Please upload your latest lab results</strong><p>Examples: HbA1c, testosterone, thyroid profile, semen analysis if advised.</p><button type="button" onclick="upload()">Upload report (demo)</button></div>`;
+  if(S.cig>0){var tg=Math.max(2,S.cig-w);h+=`<div class="card"><strong>This week’s goal</strong><p>Smoke no more than <b>${tg}</b> cigarettes a day. You are cutting down slowly, one at a time, toward 2 a day.</p></div>`}
+  h+=`<h2>Today’s check-in</h2>`+habits().map(function(x){return `<label class="chk"><input type="checkbox" class="hb"> ${x}</label>`}).join('')+`<button type="button" onclick="save()">Save today</button>`;
+  h+=`<p class="lead">Demo only: skip ahead to see badges and reminders.</p><button type="button" class="alt" onclick="ff(1)">+1 week</button><button type="button" class="alt" onclick="ff(3)">+3 weeks</button><button type="button" class="alt" onclick="ff(13)">+13 weeks</button>`;
+  if(!S.bound){
+    var nx=-1;for(var i=0;i<B.length;i++){if(!earned(i)){nx=i;break}}
+    if(nx>=0){var need=nx==8?'week 52 and a score of 80% or more':`week ${B[nx][2]} and a gain of +${B[nx][3]} points (you have +${Math.max(0,g).toFixed(1)})`;h+=`<div class="card"><strong>Next badge: ${B[nx][0]}</strong><p>Needs ${need}. Badges need steady logging and a real score improvement.</p></div>`}
+    else h+=`<div class="card ok"><strong>Koh-i-Noor Fertility Champion!</strong><p>You reached every badge.</p></div>`;
+    if(w>=52&&S.score<80)h+=`<div class="card warn"><strong>Journey extended</strong><p>Your score is still below 80%, so your journey continues for another cycle. Please also book a medical check-up.</p></div>`;
+    h+=`<h2>Badge ladder</h2><div class="grid">`+B.map(function(b,i){var e=earned(i);return `<div class="b ${e?'on':'off'}"><span>${b[1]}</span><b>${b[0]}</b><br>${i==8?'52 wk':b[2]+' wk'}${e?'<br>Earned':''}</div>`}).join('')+`</div>`;
+  }
+  h+=`<div class="card"><strong>Safety note</strong><p>FertiGuard AI supports healthy habits. It does not diagnose infertility or predict conception. A doctor should guide any medical decision.</p></div><button type="button" class="alt" onclick="reset()">Start over</button>`;
+  return h
+}
+function render(){$('app').innerHTML=S?dash():joinView()}
+render();
+</script>
+</body>
+</html>
